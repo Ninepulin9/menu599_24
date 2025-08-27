@@ -92,9 +92,9 @@ class Rider extends Controller
             $table->name = $input['name'];
             $table->email = $input['email'];
             $table->tel = $input['tel'];
-            $table->role = 'admin';
+            $table->role = 'rider';
             $table->email_verified_at = now();
-            $table->password = Hash::make('123456789');
+            $table->password = Hash::make($input['tel']);
             $table->remember_token = null;
             $table->is_rider = 1;
             if ($table->save()) {
