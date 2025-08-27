@@ -224,38 +224,52 @@ class Admin extends Controller
             'config' => $config,
             'orders' => $orders,
             'order_details' => $order_details,
+            
             'table' => $table,
+            'table_id' => $orders->first()->table_id ?? null,
             'type' => 'order_admin'
         ];
         return view('print_web', ['jsonData' => json_encode($data)]);
     }
 
-    public function printOrderAdminCook($table_id)
+   public function printOrderAdminCook($id)
     {
         $config = Config::first();
-        $orders = Orders::where('table_id', $table_id)
+        $orders = Orders::with(['orderdetail.menu', 'orderdetail.option.option', 'table'])
+            ->where(function ($q) use ($id) {
+                $q->where('table_id', $id)
+                    ->orWhere('id', $id);
+            })
             ->whereIn('status', [1, 2])
             ->get();
-        // Update print flag for these orders
-        Orders::where('table_id', $table_id)
-            ->whereIn('status', [1, 2])
-            ->update(['is_print_cook' => 1]);
-
-        $order_details = [];
-        foreach ($orders as $order) {
-            $details = OrdersDetails::where('order_id', $order->id)
-                ->with('menu', 'option.option')
+        // If no orders are found, treat the id as order id (for delivery orders)
+        if ($orders->isEmpty()) {
+            $orders = Orders::where('id', $id)
+                ->whereIn('status', [1, 2])
                 ->get();
-            $order_details = array_merge($order_details, $details->toArray());
         }
 
-        $table = Table::find($table_id);
+        
+        Orders::whereIn('id', $orders->pluck('id'))
+            ->update(['is_print_cook' => 1]);
+        $order_details = $orders->flatMap(function ($order) {
+            return $order->orderdetail;
+        })->map(function ($detail) {
+            return $detail->toArray();
+        })->values()->all();
+
+ 
+        $table = Table::find($id);
+        if (!$table && $orders->isNotEmpty()) {
+            $table = $orders->first()->table;
+        }
 
         $data = [
             'config' => $config,
             'orders' => $orders,
             'order_details' => $order_details,
             'table' => $table,
+            'table_id' => $orders->first()->table_id ?? null,
             'type' => 'order_cook'
         ];
         return view('print_web', ['jsonData' => json_encode($data)]);
@@ -268,13 +282,18 @@ class Admin extends Controller
             ->first();
 
         if ($order) {
-            Orders::where('table_id', $order->table_id)
-                ->where('is_print_cook', 0)
-                ->update(['is_print_cook' => 1]);
+            if ($order->table_id !== null) {
+                Orders::where('table_id', $order->table_id)
+                    ->where('is_print_cook', 0)
+                    ->update(['is_print_cook' => 1]);
+            } else {
+                $order->update(['is_print_cook' => 1]);
+            }
 
             return response()->json([
                 'status' => true,
                 'table_id' => $order->table_id,
+                'id' => $order->id,
             ]);
         }
 

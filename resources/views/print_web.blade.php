@@ -676,13 +676,17 @@
         }
         
         function renderOrderCook() {
+            const isDelivery = !data.table && (data.table_id === null || data.table_id === undefined);
+            const orderLabel = isDelivery
+                ? `เลขออเดอร์: #${data.orders && data.orders.length > 0 ? data.orders[0].id : ''}`
+                : `เลขที่โต๊ะ: #${data.table ? data.table.table_number : data.table_id}`;
             let html = `
                 <div class="header">
                     <div class="shop-name">${data.config.name || 'ร้านค้าออนไลน์'}</div>
                     <div style="background-color: #ffeb3b; padding: 5px; margin: 10px 0; border-radius: 3px;">
-                        <strong>สำหรับครัว - ออเดอร์ในร้าน</strong>
+                        <strong>สำหรับครัว - ${isDelivery ? 'ออเดอร์เดลิเวอรี่' : 'ออเดอร์ในร้าน'}</strong>
                     </div>
-                    <div>เลขที่โต๊ะ: #${data.table ? data.table.table_number : data.table_id}</div>
+                    <div>${orderLabel}</div>
                     <div>วันที่: ${formatDateTime(new Date())}</div>
                 </div>
                 

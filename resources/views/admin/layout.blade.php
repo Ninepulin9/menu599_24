@@ -112,7 +112,8 @@
                 .then(response => response.json())
                 .then(res => {
                     if (res.status) {
-                        window.open('/admin/order/printOrderAdminCook/' + res.table_id, '_blank');
+                        const id = res.table_id !== null ? res.table_id : res.id;
+                        window.open('/admin/order/printOrderAdminCook/' + id, '_blank');
                     }
                 })
                 .catch(err => console.error(err));
