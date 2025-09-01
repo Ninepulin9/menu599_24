@@ -490,6 +490,22 @@ private function sendPaymentNotification($tableId, $pay, $paymentType)
             $order->is_pay = 1;
             $order->is_type = $request->input('value');
             if ($order->save()) {
+                // Ensure Pay and PayGroup exist for rider/online payments
+                $existingPayGroup = PayGroup::where('order_id', $order->id)->first();
+                if (!$existingPayGroup) {
+                    $pay = new Pay();
+                    $pay->payment_number = $this->generateRunningNumber();
+                    $pay->table_id = null; // rider/online has no table
+                    $pay->user_id = $order->users_id ?? null;
+                    $pay->total = $order->total;
+                    $pay->is_type = (int) $order->is_type;
+                    if ($pay->save()) {
+                        $paygroup = new PayGroup();
+                        $paygroup->pay_id = $pay->id;
+                        $paygroup->order_id = $order->id;
+                        $paygroup->save();
+                    }
+                }
                 $data = [
                     'status' => true,
                     'message' => 'ชำระเงินเรียบร้อยแล้ว',

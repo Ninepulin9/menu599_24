@@ -193,6 +193,11 @@ class Rider extends Controller
                         'message' => 'ชำระเงินเรียบร้อยแล้ว',
                     ];
                 }
+                else {
+                    $data = [
+                        'status' => true,
+                        'message' => 'success',
+                    ];
                 }
 
                 $rider = RiderSend::where('order_id', $id)->first();
@@ -219,8 +224,6 @@ class Rider extends Controller
             $order = Orders::find($id);
             $order->status = 3;
             if ($order->save()) {
-                $existingPayGroup = PayGroup::where('order_id', $id)->first();
-                if (!$existingPayGroup) {
                 $pay = new Pay();
                 $pay->payment_number = $this->generateRunningNumber();
                 $pay->total = $order->total;
@@ -240,7 +243,6 @@ class Rider extends Controller
                         'status' => true,
                         'message' => 'ชำระเงินเรียบร้อยแล้ว',
                     ];
-                }
                 }
 
                 $rider = RiderSend::where('order_id', $id)->first();
@@ -270,3 +272,4 @@ class Rider extends Controller
         return $prefix . str_pad($next, $padLength, '0', STR_PAD_LEFT);
     }
 }
+

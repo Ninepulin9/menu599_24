@@ -397,6 +397,7 @@
                 if (response.status == true) {
                     Swal.fire(response.message, "", "success");
                     $('#myTable').DataTable().ajax.reload(null, false);
+                    $('#myTable2').DataTable().ajax.reload(null, false);
                 } else {
                     Swal.fire(response.message, "", "error");
                 }
@@ -490,7 +491,7 @@
         });
     });
 
-    $(document).on('click', '.cancelMenuSwal', function(e) {
+$(document).on('click', '.cancelMenuSwal', function(e) {
         var id = $(this).data('id');
         $('#modal-detail').modal('hide');
         Swal.fire({
@@ -519,9 +520,26 @@
                             Swal.fire(response.message, "", "error");
                         }
                     }
-                });
+});
+
+// Preview receipt for an entry in "รายการชำระเงิน"
+$(document).on('click', '.preview-short', function(e) {
+    e.preventDefault();
+    var id = $(this).data('id');
+    if (!id) return;
+    var previewUrl = "{{ route('printReceipt', ':id') }}".replace(':id', id);
+    window.open(previewUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+});
             }
         });
     });
+// Global handler: preview receipt from paid list
+$(document).on('click', '.preview-short', function(e) {
+    e.preventDefault();
+    var id = $(this).data('id');
+    if (!id) return;
+    var previewUrl = "{{ route('printReceipt', ':id') }}".replace(':id', id);
+    window.open(previewUrl, '_blank', 'width=800,height=600,scrollbars=yes,resizable=yes');
+});
 </script>
 @endsection
